@@ -31,6 +31,9 @@
 | TRAP-09 | 超大版本 | JSON精度损失 | 文本序列化 | `app/values.py` | `tests/test_m2.py::test_large_version_precise` |
 | TRAP-13 | 删除后迟到旧写 | 文档复活 | 最大版本墓碑 | `app/modules/m3_versions/rules.py` | `tests/test_m3.py::test_tombstone_beats_late_old_write` |
 | TRAP-23 | 延迟阈值边界 | 多判延迟 | 等于阈值通过 | `app/modules/m5_latency/rules.py` | `tests/test_m5.py::test_threshold_equal_pass` |
+| TRAP-27 | 到期清理误删依据 | 正文与证据一起删 | 删除已确认才清正文，证据按包保留 | `app/retention.py` | `tests/test_retention.py::test_evidence_survives_cleanup` |
+| TRAP-28 | 仍在检索先清正文 | 按时间一刀切 | 索引端 upsert 一律 HOLD | `app/retention.py` | `tests/test_retention.py::test_still_searchable_holds_body` |
+| TRAP-29 | 重跑清理漂移 | 每跑一次少/多一条 | 包摘要只覆盖证据，重复清理幂等 | `app/retention.py` | `tests/test_retention.py::test_cleanup_is_idempotent` |
 
 ## 对账规则
 

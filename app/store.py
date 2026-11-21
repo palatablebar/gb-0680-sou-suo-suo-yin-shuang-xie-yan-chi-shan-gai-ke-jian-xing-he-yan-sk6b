@@ -16,6 +16,12 @@ def get(run_id):
     with connect() as db: row=db.execute("SELECT payload,version,decision FROM runs WHERE id=?",(run_id,)).fetchone()
     if not row: raise DomainError("NOT_FOUND","批次不存在",404)
     return {**json.loads(row[0]),"version":row[1],"decision":row[2]}
+def replace(run_id,payload):
+    """只更新计算结果正文，保留复核版本与结论；用于到期清理的事务写入。"""
+    with connect() as db:
+        cursor=db.execute("UPDATE runs SET payload=? WHERE id=?",(json.dumps(payload,ensure_ascii=False),run_id))
+        if cursor.rowcount!=1: raise DomainError("NOT_FOUND","批次不存在",404)
+    return get(run_id)
 def latest():
     with connect() as db: row=db.execute("SELECT id FROM runs ORDER BY rowid DESC LIMIT 1").fetchone()
     return get(row[0]) if row else None

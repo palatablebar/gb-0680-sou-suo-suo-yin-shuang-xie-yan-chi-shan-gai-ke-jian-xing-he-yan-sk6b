@@ -3,6 +3,7 @@ from app.config import ROOT,DATA_DIR,MODULES
 from app.errors import DomainError
 from app import pipeline,store
 from app.web import register_pages
+from app import retention
 import importlib
 def create_app():
     application=Flask(__name__,template_folder="templates",static_folder="static")
@@ -40,6 +41,19 @@ def create_app():
         p=request.get_json(silent=True) or {}
         if not isinstance(p.get("version"),int): raise DomainError("BAD_VERSION","请提供版本号")
         return store.review(run_id,p["version"],p.get("decision"))
+    @application.get("/api/runs/<run_id>/retention")
+    def retention_package(run_id):
+        run=store.get(run_id)
+        package=retention.build(run)
+        if isinstance(run.get("retention_cleanup"),dict):package={**package,"cleanup":run["retention_cleanup"]}
+        return package
+    @application.post("/api/runs/<run_id>/retention")
+    def retention_cleanup(run_id):
+        run=store.get(run_id)
+        package=retention.build(run)
+        updated,receipt=retention.cleanup(run,package)
+        if updated is not None: store.replace(run_id,updated)
+        return {**package,"cleanup":receipt}
     @application.get("/api/runs/<run_id>/archive")
     def archive(run_id):
         from app.archive import build_archive
